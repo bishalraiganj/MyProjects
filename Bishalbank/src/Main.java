@@ -216,7 +216,7 @@ public class Main {
             case 2 -> findCustomer(bishal);
             case 3 -> addNewCustomer(bishal);
             case 4->addTransaction(bishal);
-//            case  5->findCustomer();
+            case  5->findCustomer(bishal);
 //            case 6->seeBalance();
 
         }
