@@ -5,11 +5,6 @@ import java.time.LocalDateTime;
 public record LoginObject(String mail, String password, LocalDateTime timeStamp) {
 
 
-
-
-
-
-
 	@Override
 	public String toString()
 	{
