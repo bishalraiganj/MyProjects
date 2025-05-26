@@ -27,6 +27,26 @@ public class Server {
 		while(!validateMail(data));
 		System.out.println( "Email : " + data);
 
+		int loopCounter2 = 1;
+		String data2 ;
+
+		do {
+			if(loopCounter2 >1 )
+			{
+				System.out.println(" INVALID PASSWORD FORMAT ! (ENTER a password between 8-16 chars and at least one Special character  ! ;-)  ");
+			}
+
+			System.out.println("Enter your password: ");
+			data2 = sc.nextLine();
+			loopCounter2++;
+
+		}while(!validatePassword(data2));
+
+		System.out.printf("""
+				Your are registered as 
+				 email:%s   |  password : %s 
+				""",data,data2);
+
 
 
 	}
@@ -43,6 +63,29 @@ public class Server {
 
 		return m.matches();
 
+
+	}
+
+
+	// Matches if the passed string argument contains 8-16 characters and has atleast one special character "@!%$*?#&<>()\][ "
+	private static boolean validatePassword(String data)
+	{
+		Stream<String> lines =
+				data.lines();
+
+		String pass = lines.
+				limit(1)
+				.collect(Collectors.joining(""));
+
+		Pattern p = Pattern.compile("([0-9a-zA-Z@!%$*?#&<>()\\]\\[]{8,16})");
+		Pattern specialCharPattern = Pattern.compile("[@!#%&*$?><)(\\[\\]]");
+		Matcher m = p.matcher(pass);
+		Matcher specialCharMatcher  = specialCharPattern.matcher(pass);
+		if(m.matches() && specialCharMatcher.find())
+		{
+			return true;
+		}
+		return false;
 
 	}
 
