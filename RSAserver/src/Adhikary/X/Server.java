@@ -1,5 +1,11 @@
 package Adhikary.X;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,9 +53,14 @@ public class Server {
 				 email:%s   |  password : %s 
 				""",data,data2);
 
+		storeNewUserData(data,data2);
 
 
 	}
+
+
+
+
 
 	private static boolean validateMail(String data)
 	{
@@ -65,6 +76,9 @@ public class Server {
 
 
 	}
+
+
+
 
 
 	// Matches if the passed string argument contains 8-16 characters and has atleast one special character "@!%$*?#&<>()\][ "
@@ -86,6 +100,53 @@ public class Server {
 			return true;
 		}
 		return false;
+
+	}
+
+
+
+
+
+
+	private static boolean storeNewUserData(String mail,String password)
+	{
+		String appendedData = mail + password;
+		Path path = Path.of("users.txt");
+
+		try
+		{
+
+			if(!Files.exists(path))
+			{
+				Files.createFile(path);
+			}
+
+
+		}catch(IOException e)
+		{
+			System.out.println("Error Message: " + e.getMessage());
+		}
+
+		try(RandomAccessFile raf = new RandomAccessFile(path.toFile(),"rw") ;
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile())))
+		{
+			byte[] bArr = bis.readAllBytes();
+			raf.seek(bArr.length);
+
+			 raf.write(appendedData.getBytes());
+			 return true;
+
+
+
+
+		}catch(IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+
+
+
 
 	}
 
