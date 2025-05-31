@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -133,7 +134,8 @@ public class Server {
 			byte[] bArr = bis.readAllBytes();
 			raf.seek(bArr.length);
 
-			 raf.write(appendedData.getBytes());
+			 raf.writeUTF(new String(appendedData.getBytes())+"\n");
+
 			 return true;
 
 
@@ -149,6 +151,85 @@ public class Server {
 
 
 	}
+
+
+
+//	private static byte[] rsaCipher()
+//	{
+//		long p  ;
+//		long q ;
+//		long n = p * q ;
+//
+//
+//
+//
+//
+//	}
+
+
+	public static long primeGenerator() {
+		Random r = new Random();
+		long num = r.nextLong(10555, 11000);
+
+		long primeCounter =  2 ;
+
+		long prime  = 0;
+
+
+
+		for(int i = 5 ; primeCounter < num ; i += 6)
+		{
+			int j = i + 2;
+
+			if(isPrime(i))
+			{
+				prime = i;
+				primeCounter++;
+
+			}
+
+			if(isPrime(j) && primeCounter < num)
+			{
+				prime = j;
+				primeCounter++;
+			}
+		}
+
+
+		System.out.println("RandomValue (Prime Serial Number : " + num + ") Prime: " + prime  );
+			return prime;
+
+
+
+
+	}
+
+
+	public static boolean isPrime(long n)
+	{
+
+		if( n < 0)
+		{
+			return false;
+		}
+		if(( n % 2 == 0  && n != 2 )   || ( n % 3 == 0  && n != 3 ) )
+		{
+			return false;
+		}
+
+		for(int i = 5 ; i <= Math.sqrt(n) ; i += 6)
+		{
+
+			if(n % i == 0 || n % (i + 2 ) == 0 )
+			{
+				return false;
+			}
+		}
+
+		return true;
+
+	}
+
 
 
 
