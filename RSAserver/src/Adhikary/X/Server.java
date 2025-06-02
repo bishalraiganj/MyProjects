@@ -134,7 +134,7 @@ public class Server {
 			byte[] bArr = bis.readAllBytes();
 			raf.seek(bArr.length);
 
-			 raf.writeUTF(new String(appendedData.getBytes())+"\n");
+			 raf.writeUTF(appendedData);
 
 			 return true;
 
