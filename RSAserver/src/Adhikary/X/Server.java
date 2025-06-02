@@ -232,4 +232,12 @@ public class Server {
 	}
 
 
+	public static void rsaCipher(long n)
+	{
+
+
+
+	}
+
+
 }

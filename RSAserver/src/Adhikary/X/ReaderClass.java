@@ -13,6 +13,10 @@ public class ReaderClass {
 		System.out.println(read(path));
 
 
+
+
+
+
 	}
 
 
