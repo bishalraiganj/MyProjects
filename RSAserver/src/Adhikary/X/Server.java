@@ -111,7 +111,7 @@ public class Server {
 
 	private static boolean storeNewUserData(String mail,String password)
 	{
-		String appendedData = mail + password;
+		String appendedData = mail + "$|$"+ password;
 		Path path = Path.of("users.txt");
 
 		try
@@ -169,7 +169,7 @@ public class Server {
 
 	public static long primeGenerator() {
 		Random r = new Random();
-		long num = r.nextLong(10555, 11000);
+		long num = r.nextLong(1013, 1015);
 
 		long primeCounter =  2 ;
 
@@ -199,10 +199,11 @@ public class Server {
 		System.out.println("RandomValue (Prime Serial Number : " + num + ") Prime: " + prime  );
 			return prime;
 
-
-
-
 	}
+
+
+
+
 
 
 	public static boolean isPrime(long n)
@@ -229,8 +230,6 @@ public class Server {
 		return true;
 
 	}
-
-
 
 
 }
