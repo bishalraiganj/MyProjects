@@ -1,11 +1,10 @@
 package Adhikary.X;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -111,7 +110,30 @@ public class Server {
 
 	private static boolean storeNewUserData(String mail,String password)
 	{
-		String appendedData = mail + "$|$"+ password;
+
+		Map<String,Long> indexMap ;
+		if(!Files.exists(Path.of("indexMap.dat")))
+		{
+			try {
+				Files.createFile(Path.of("indexMap.dat"));
+			}catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")));
+			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("indexMap.dat"))))
+		{
+
+			indexMap = ois.read
+
+
+		}catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		String appendedData ="%|%" + mail + "$|$"+ password;
 		Path path = Path.of("users.txt");
 
 		try
