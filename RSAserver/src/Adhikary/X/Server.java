@@ -106,27 +106,31 @@ public class Server {
 
 	public void serializeIndexMap()
 	{
-		IndexMap indexMap = new IndexMap();
+		IndexMap indexMap;
 
-		if(!Files.exists(Path.of("indexMap.dat")))
-		{
-			try {
-				Files.createFile(Path.of("indexMap.dat"));
-			}catch(IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
-		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(Path.of("indexMap.dat").toFile()))))
-		{
 
-			oos.writeObject(indexMap);
-		}catch(IOException e)
-		{
+		if (!Files.exists(Path.of("indexMap.dat"))) {
+		try {
+			Files.createFile(Path.of("indexMap.dat"));
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+		try {
+			if (Files.size(Path.of("indexMap.dat")) == 0) {
+
+				indexMap = new IndexMap();
+				try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(Path.of("indexMap.dat").toFile())))) {
+
+					oos.writeObject(indexMap);
+				}
 
 
+			}
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
 
 
 	}
@@ -167,7 +171,10 @@ public class Server {
 			}
 		}
 
-		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")));
+
+
+
+		try(
 			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("indexMap.dat")));
 
 			RandomAccessFile raf = new RandomAccessFile(path.toFile(),"rw") ;
@@ -180,16 +187,20 @@ public class Server {
 
 				indexMap = (IndexMap) ois.readObject();
 
+				long offset1 = raf.length();
 				raf.seek(raf.length());
 
 
 				raf.writeUTF(appendedData);
 
-				long offset = raf.getFilePointer();
 
-				indexMap.getIndexMap().put(mail,offset);
+				indexMap.getIndexMap().put(mail,offset1);
 
-				oos.writeObject(indexMap);
+
+				try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")))) {
+
+					oos.writeObject(indexMap);
+				}
 				return true;
 
 			}catch(ClassNotFoundException e)

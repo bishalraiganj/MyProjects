@@ -9,7 +9,7 @@ public class Main {
 
 		Server gameServer = new Server();
 		gameServer.serializeIndexMap();
-//		Server.registerUser();
+		Server.registerUser();
 
 
 //		Server.primeGenerator();

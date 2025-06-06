@@ -11,21 +11,26 @@ public class ReaderClass {
 	public static void main(String... args)
 	{
 
-		String path = "users.txt";
-		System.out.println(read(path));
+//		String path = "users.txt";
+//		System.out.println(read(path));
+//
+//		System.out.println("-".repeat(50));
+//
+//		System.out.println(read(path));
+//
+//		byte[] byteDat = read(path).getBytes();
+
+
 
 		System.out.println("-".repeat(50));
 
-		System.out.println(read(path));
 
-		byte[] byteDat = read(path).getBytes();
+
+		System.out.println("usermail: b2@123.co " + "Found pass is -> " + extractPass("b2@123.co"));
 
 		System.out.println("-".repeat(50));
 
-		System.out.println(extractPass(read("users.txt")));
-
-
-
+		System.out.println("usermail: user1@123.com " + "Found pass is -> " + extractPass("user1@123.com"));
 
 
 
@@ -60,6 +65,7 @@ public class ReaderClass {
 					if(m.find())
 					{
 						pass = m.group();
+						return pass;
 					}
 
 					throw new RuntimeException("no pass found");
