@@ -104,14 +104,10 @@ public class Server {
 	}
 
 
-
-
-
-
-	private static boolean storeNewUserData(String mail,String password)
+	public void serializeIndexMap()
 	{
+		IndexMap indexMap = new IndexMap();
 
-		Map<String,Long> indexMap ;
 		if(!Files.exists(Path.of("indexMap.dat")))
 		{
 			try {
@@ -121,18 +117,26 @@ public class Server {
 				e.printStackTrace();
 			}
 		}
-
-		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")));
-			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("indexMap.dat"))))
+		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(Path.of("indexMap.dat").toFile()))))
 		{
 
-			indexMap = ois.read
-
-
+			oos.writeObject(indexMap);
 		}catch(IOException e)
 		{
 			e.printStackTrace();
 		}
+
+
+
+
+	}
+
+
+
+
+
+	private static boolean storeNewUserData(String mail,String password)
+	{
 		String appendedData ="%|%" + mail + "$|$"+ password;
 		Path path = Path.of("users.txt");
 
@@ -150,27 +154,60 @@ public class Server {
 			System.out.println("Error Message: " + e.getMessage());
 		}
 
-		try(RandomAccessFile raf = new RandomAccessFile(path.toFile(),"rw") ;
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile())))
+
+		IndexMap indexMap ;
+
+		if(!Files.exists(Path.of("indexMap.dat")))
 		{
-			byte[] bArr = bis.readAllBytes();
-			raf.seek(bArr.length);
+			try {
+				Files.createFile(Path.of("indexMap.dat"));
+			}catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 
-			 raf.writeUTF(appendedData);
+		try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")));
+			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("indexMap.dat")));
 
-			 return true;
+			RandomAccessFile raf = new RandomAccessFile(path.toFile(),"rw") ;
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()))
+			)
+		{
+
+			try {
+
+
+				indexMap = (IndexMap) ois.readObject();
+
+				raf.seek(raf.length());
+
+
+				raf.writeUTF(appendedData);
+
+				long offset = raf.getFilePointer();
+
+				indexMap.getIndexMap().put(mail,offset);
+
+				oos.writeObject(indexMap);
+				return true;
+
+			}catch(ClassNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+
 
 
 
 
 		}catch(IOException e)
 		{
-			throw new RuntimeException(e);
+			e.printStackTrace();
 		}
 
 
-
-
+		return false;
 
 	}
 

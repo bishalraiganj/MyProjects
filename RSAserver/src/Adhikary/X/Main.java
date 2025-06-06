@@ -6,7 +6,10 @@ public class Main {
 
 	public static void main(String... args)
 	{
-		Server.registerUser();
+
+		Server gameServer = new Server();
+		gameServer.serializeIndexMap();
+//		Server.registerUser();
 
 
 //		Server.primeGenerator();

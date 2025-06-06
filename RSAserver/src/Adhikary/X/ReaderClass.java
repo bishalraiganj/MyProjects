@@ -1,8 +1,8 @@
 package Adhikary.X;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,24 +34,48 @@ public class ReaderClass {
 
 	}
 
-	private static String extractPass(String path,long offset)
+	private static String extractPass(String userName)
 	{
 		Pattern p  = Pattern.compile("\\$\\|\\$.{8,16}");
-		Matcher m = p.matcher(userCreds);
+		String userCred ;
+		String pass;
 
-		try(RandomAccessFile raf = new RandomAccessFile(Path.of(path).toFile(),"rw"))
+
+
+
+		try(ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(Path.of("indexMap.dat").toFile())));
+				RandomAccessFile raf = new RandomAccessFile(Path.of("users.txt").toFile(),"rw"))
 		{
-			raf.seek(offset);
+
+
+				long offset ;
+				IndexMap indexMapObject = (IndexMap) ois.readObject();
+			    Map<String, Long> map = indexMapObject.getIndexMap();
+				if(map.containsKey(userName))
+				{
+					offset = map.get(userName);
+					raf.seek(offset);
+					userCred = raf.readUTF();
+					Matcher m = p.matcher(userCred);
+					if(m.find())
+					{
+						pass = m.group();
+					}
+
+					throw new RuntimeException("no pass found");
+
+				}
 
 
 
-		}catch(IOException e)
+
+
+		}catch(IOException  | ClassNotFoundException e )
 		{
 			e.printStackTrace();
 		}
-		m.find();
 
-		return m.group();
+		throw new RuntimeException("no pass found");
 
 
 
