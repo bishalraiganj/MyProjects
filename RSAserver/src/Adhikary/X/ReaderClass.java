@@ -100,7 +100,7 @@ public class ReaderClass {
 
 
 
-	private static String retrieveRawPass(String userName) // This reads only 8-16 characters as-is
+	private static String retrieveRawPass(String userName) // This reads the entire encrypted cipherText then decrypts using the RsaCipher types help
 	{
 		RsaCipher cipher = new RsaCipher();
 
