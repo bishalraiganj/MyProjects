@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+// This class reads UTF-8 version of data directly from database and cannot read RSA encrypted data, I developed this for debugging purpose during the project's development phase :-)
 public class ReaderClass {
 
 	public static void main(String... args)

@@ -1,6 +1,7 @@
 package Adhikary.X;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -224,17 +225,7 @@ public class Server {
 
 
 
-//	private static byte[] rsaCipher()
-//	{
-//		long p  ;
-//		long q ;
-//		long n = p * q ;
-//
-//
-//
-//
-//
-//	}
+
 
 
 	public static long primeGenerator() {
