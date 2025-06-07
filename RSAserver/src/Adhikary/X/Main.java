@@ -7,8 +7,8 @@ public class Main {
 	public static void main(String... args)
 	{
 
-//		Server gameServer = new Server();
-//		gameServer.serializeIndexMap();
+		Server gameServer = new Server();
+		gameServer.serializeIndexMap();
 		Server.registerUser();
 
 

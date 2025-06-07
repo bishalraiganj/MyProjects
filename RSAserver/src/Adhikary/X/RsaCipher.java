@@ -61,11 +61,11 @@ public class RsaCipher {
 		{
 			byte[] bArr = Base64.getDecoder().decode(c);
 			BigInteger encrypted = new BigInteger(bArr);
-			System.out.println("Encrypted  BigInteger after string to BigInteger conversion : " + encrypted);
+//			System.out.println("Encrypted  BigInteger after string to BigInteger conversion : " + encrypted);
 
 			BigInteger decrypted = decrypt(encrypted);
 
-			System.out.println("Decrypted BigInteger (after decryption) :" + decrypted);
+//			System.out.println("Decrypted BigInteger (after decryption) :" + decrypted);
 
 			byte[] decryptedBytes = decrypted.toByteArray();
 
