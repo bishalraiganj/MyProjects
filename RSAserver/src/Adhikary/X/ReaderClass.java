@@ -65,7 +65,7 @@ public class ReaderClass {
 					if(m.find())
 					{
 						pass = m.group();
-						return pass;
+						return pass.replaceFirst("\\$\\|\\$","");
 					}
 
 					throw new RuntimeException("no pass found");
