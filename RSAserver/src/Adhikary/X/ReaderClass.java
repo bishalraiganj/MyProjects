@@ -34,6 +34,14 @@ public class ReaderClass {
 
 		System.out.println("usermail: user1@123.com " + "Found pass is -> " + extractPass("user1@123.com"));
 
+		System.out.println("-".repeat(50));
+
+		System.out.println("usermail: a1@gmail.com " +  " Found pass is -> " + extractPass("a1@gmail.com"));
+
+		System.out.println("-".repeat(50));
+
+		System.out.println("usermail: bishaladhikaryreal@gmail.com " + " Found pass is -> " + retrieveRawPass("bishaladhikaryreal@gmail.com"));
+
 
 
 
@@ -41,7 +49,7 @@ public class ReaderClass {
 
 	}
 
-	private static String extractPass(String userName)
+	private static String extractPass(String userName) // This reads only 8-16 characters as-is
 	{
 		Pattern p  = Pattern.compile("\\$\\|\\$.{8,16}");
 		String userCred ;
@@ -73,6 +81,59 @@ public class ReaderClass {
 					throw new RuntimeException("no pass found");
 
 				}
+
+
+
+
+
+		}catch(IOException  | ClassNotFoundException e )
+		{
+			e.printStackTrace();
+		}
+
+		throw new RuntimeException("no pass found");
+
+
+
+	}
+
+
+
+
+	private static String retrieveRawPass(String userName) // This reads only 8-16 characters as-is
+	{
+		RsaCipher cipher = new RsaCipher();
+
+		Pattern p  = Pattern.compile("\\$\\|\\$.+");
+		String userCred ;
+		String pass;
+
+
+
+
+		try(ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(Path.of("indexMap.dat").toFile())));
+			RandomAccessFile raf = new RandomAccessFile(Path.of("users.txt").toFile(),"rw"))
+		{
+
+
+			long offset ;
+			IndexMap indexMapObject = (IndexMap) ois.readObject();
+			Map<String, Long> map = indexMapObject.getIndexMap();
+			if(map.containsKey(userName))
+			{
+				offset = map.get(userName);
+				raf.seek(offset);
+				userCred = raf.readUTF();
+				Matcher m = p.matcher(userCred);
+				if(m.find())
+				{
+					pass = m.group();
+					return cipher.decryptString(pass.replaceFirst("\\$\\|\\$",""));
+				}
+
+				throw new RuntimeException("no pass found");
+
+			}
 
 
 

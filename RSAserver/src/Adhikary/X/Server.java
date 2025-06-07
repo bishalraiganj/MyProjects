@@ -142,7 +142,9 @@ public class Server {
 
 	private static boolean storeNewUserData(String mail,String password)
 	{
-		String appendedData ="%|%" + mail + "$|$"+ password;
+
+		RsaCipher cipher = new RsaCipher();
+		String appendedData ="%|%" + mail + "$|$"+ cipher.encryptor(password);
 		Path path = Path.of("users.txt");
 
 		try
@@ -164,12 +166,14 @@ public class Server {
 
 		if(!Files.exists(Path.of("indexMap.dat")))
 		{
+
 			try {
 				Files.createFile(Path.of("indexMap.dat"));
 			}catch(IOException e)
 			{
 				e.printStackTrace();
 			}
+
 		}
 
 

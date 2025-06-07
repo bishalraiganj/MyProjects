@@ -94,5 +94,12 @@ public class RsaCipher {
 		}
 
 
+		public String encryptor(String m)
+		{
+			BigInteger c = encrypt(m);
+			String cipherText = encryptMessageFrmBi(c);
+			return cipherText;
+
+		}
 
 }

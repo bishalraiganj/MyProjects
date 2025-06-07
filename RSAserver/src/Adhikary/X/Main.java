@@ -9,12 +9,12 @@ public class Main {
 
 //		Server gameServer = new Server();
 //		gameServer.serializeIndexMap();
-//		Server.registerUser();
+		Server.registerUser();
 
 
-		Server.primeGenerator();
-
-		System.out.println(Server.isPrime(967));
+//		Server.primeGenerator();
+//
+//		System.out.println(Server.isPrime(967));
 
 	}
 
