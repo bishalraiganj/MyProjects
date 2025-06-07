@@ -18,11 +18,31 @@ public class EncryptionTester {
 		String originalText= c1.decryptString(cipherText);
 
 
-		System.out.println("encrypted BigInteger : " + c1.encrypt(plainText));
+		System.out.println("encrypted BigInteger : " + eInt);
 
 		System.out.println("Cipher text (encrypted String) : " + cipherText );
 
 		System.out.println("Decrypted String (Original String / plaintext : " + originalText);
+
+
+		System.out.println("-".repeat(50));
+
+		String plainText2 = "abcde@12345";
+
+		BigInteger eInt2 = c1.encrypt(plainText2);
+
+		String cipherText2 = c1.encryptMessageFrmBi(eInt2);
+
+		String originalText2= c1.decryptString(cipherText2);
+
+
+		System.out.println("encrypted BigInteger : " + eInt2);
+
+		System.out.println("Cipher text (encrypted String) : " + cipherText2 );
+
+		System.out.println("Decrypted String (Original String / plaintext : " + originalText2);
+
+
 
 
 
