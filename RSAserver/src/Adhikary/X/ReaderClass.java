@@ -44,6 +44,8 @@ public class ReaderClass {
 
 		System.out.println("usermail: 6297609615@phone.com" + " | Found pass is -> " + retrieveRawPass("6297609615@phone.com"));
 
+		System.out.println("usermail : krishnaadhikary@gmail.com  " + " | Found pass is -> " + retrieveRawPass("krishnaadhikary@gmail.com"));
+
 
 
 
@@ -51,7 +53,7 @@ public class ReaderClass {
 
 	}
 
-	private static String extractPass(String userName) // This reads only 8-16 characters as-is
+	protected static String extractPass(String userName) // This reads only 8-16 characters as-is
 	{
 		Pattern p  = Pattern.compile("\\$\\|\\$.{8,16}");
 		String userCred ;

@@ -49,10 +49,7 @@ public class Server {
 
 		}while(!validatePassword(data2));
 
-		System.out.printf("""
-				Your are registered as 
-				 email:%s   |  password : %s 
-				""",data,data2);
+
 
 		storeNewUserData(data,data2);
 
@@ -192,21 +189,31 @@ public class Server {
 
 				indexMap = (IndexMap) ois.readObject();
 
-				long offset1 = raf.length();
-				raf.seek(raf.length());
+				Map<String, Long> map = indexMap.getIndexMap();
+				if(!map.containsKey(mail)) {
+					long offset1 = raf.length();
+					raf.seek(raf.length());
 
 
-				raf.writeUTF(appendedData);
+					raf.writeUTF(appendedData);
 
 
-				indexMap.getIndexMap().put(mail,offset1);
+					indexMap.getIndexMap().put(mail, offset1);
 
 
-				try(ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")))) {
+					try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("indexMap.dat")))) {
 
-					oos.writeObject(indexMap);
+						oos.writeObject(indexMap);
+					}
+					System.out.printf("""
+				Your are registered as 
+				 email:%s   |  password : %s 
+				""",mail,password);
+					return true;
 				}
-				return true;
+				else {
+					System.out.println("User already exists !");
+				}
 
 			}catch(ClassNotFoundException e)
 			{
@@ -297,9 +304,59 @@ public class Server {
 	}
 
 
-	public static void rsaCipher(long n)
-	{
 
+
+	protected static boolean credValidate(LoginObject lo)
+	{
+		if(validateMail(lo.mail()) && validatePassword(lo.password()))
+		{
+			return true;
+		}
+
+		System.out.println("Invalid mail or Password Format !");
+		return false;
+	}
+
+	protected static boolean authenticateLo(LoginObject lo)
+	{
+		RsaCipher cipher = new RsaCipher();
+		IndexMap indexMapObject;
+		Map<String, Long> map ;
+		try(ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(Path.of("indexMap.dat").toFile()))) ;
+			RandomAccessFile raf = new RandomAccessFile(Path.of("users.txt").toFile(),"rw"))
+		{
+			indexMapObject = (IndexMap) ois.readObject();
+			map = indexMapObject.getIndexMap();
+
+			if(map.containsKey(lo.mail()))
+			{
+				raf.seek(map.get(lo.mail()));
+				String cipherText = raf.readUTF().replaceFirst("%\\|%.+\\$\\|\\$","");
+//				System.out.println(cipherText);
+
+
+				if(lo.password().equals(cipher.decryptString(cipherText))) // If the password of the loginObject instance matches the password in the database ("users.txt " )  after decryption this method will return true ;
+				{
+					return true;
+				}
+
+				System.out.println("Password Mismatch !");
+				return false;
+
+			}
+			else
+			{
+
+				System.out.println("User does not exist");
+			}
+
+		}catch(IOException  | ClassNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+
+//		System.out.println("Either User does not exist or wrong password  or BLOCKED! Try Again ! ");
+		return false;
 
 
 	}
