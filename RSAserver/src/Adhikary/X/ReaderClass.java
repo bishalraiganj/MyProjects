@@ -40,16 +40,20 @@ public class ReaderClass {
 //
 //		System.out.println("-".repeat(50));
 
-		System.out.println("usermail: bishaladhikaryreal@gmail.com " + " | Found pass is -> " + retrieveRawPass("bishaladhikaryreal@gmail.com"));
+//		System.out.println("usermail: bishaladhikaryreal@gmail.com " + " | Found pass is -> " + retrieveRawPass("bishaladhikaryreal@gmail.com"));
+//
+//		System.out.println("usermail: 6297609615@phone.com" + " | Found pass is -> " + retrieveRawPass("6297609615@phone.com"));
+//
+//		System.out.println("usermail : krishnaadhikary@gmail.com  " + " | Found pass is -> " + retrieveRawPass("krishnaadhikary@gmail.com"));
+//
+//
+//
+//		System.out.println("usermail : newmail@123.com " + " | Found pass is -> " + retrieveRawPass("newmail@123.com"));
 
-		System.out.println("usermail: 6297609615@phone.com" + " | Found pass is -> " + retrieveRawPass("6297609615@phone.com"));
 
-		System.out.println("usermail : krishnaadhikary@gmail.com  " + " | Found pass is -> " + retrieveRawPass("krishnaadhikary@gmail.com"));
+		System.out.println("bishal@123.com + pass : " + retrieveRawPass("bishal@123.com"));
 
-
-
-		System.out.println("usermail : newmail@123.com " + " | Found pass is -> " + retrieveRawPass("newmail@123.com"));
-
+//		System.out.println("")
 
 
 	}
@@ -127,6 +131,7 @@ public class ReaderClass {
 			if(map.containsKey(userName))
 			{
 				offset = map.get(userName);
+				System.out.println(offset);
 				raf.seek(offset);
 				userCred = raf.readUTF();
 				Matcher m = p.matcher(userCred);
