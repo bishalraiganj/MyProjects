@@ -84,17 +84,9 @@ public class AuthenticatorConsole {
 			System.out.println(lo);
 		}
 
-
-
-
-
-
-
-
-
-
-
 	}
+
+
 
 
 
