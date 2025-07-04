@@ -66,7 +66,10 @@ public class LogParser {
 
 
 		}
-		else if(matcher.find())
+
+		matcher.reset(rawLine);
+
+		 if(matcher.find())
 		{
 			int year  = Integer.parseInt(matcher.group(2));
 			int month = Integer.parseInt(matcher.group(3));

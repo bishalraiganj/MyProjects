@@ -12,9 +12,9 @@ public class Main {
 
 
 
-	String log1Valid = "2025-07-03 11:22:33 ERROR [System] - Disk space critically low";
+	String log1Valid = "2025-07-03 11:22:33 ERROR [System] - Disk space critically low    ";
 
-	String log2Valid = "2025-07-03 11:23:10 INFO [Network] - Connection established successfully";
+	String log2Valid = "2025-07-03 11:23:10 INFO [Network] - Connection established successfully   ";
 
 	String log3Valid = "2025-07-03 11:24:01 WARN [Security] - Unauthorized login attempt @ 192.168.0.101";
 
