@@ -61,6 +61,8 @@ public class LogParser {
 
 			LogEntry logEntry = new LogEntry(dateTime,logLevel,logSource,logMessage,filePath);
 
+			return Optional.of(logEntry);
+
 
 
 		}
@@ -99,6 +101,8 @@ public class LogParser {
 
 
 			LogEntry logEntry = new LogEntry(dateTime,logLevel,logSource,logMessage,filePath);
+
+			return Optional.of(logEntry);
 
 
 		}
