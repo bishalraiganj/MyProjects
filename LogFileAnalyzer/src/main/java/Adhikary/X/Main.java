@@ -31,11 +31,25 @@ public class Main {
 
 	Optional<LogEntry> logEntry2 = LogParser.parseLine(log2Valid, Path.of("").toAbsolutePath());
 
+	Optional<LogEntry> logEntry3 = LogParser.parseLine(log3Valid, Path.of("").toAbsolutePath());
+
 	Optional<LogEntry> logEntry4 = LogParser.parseLine(log4Invalid, Path.of("").toAbsolutePath());
+	
+	Optional<LogEntry> logEntry5 = LogParser.parseLine(log5Invalid, Path.of("").toAbsolutePath());
+
+	Optional<LogEntry> logEntry6 = LogParser.parseLine(log6Invalid, Path.of("").toAbsolutePath());
+
+	Optional<LogEntry> logEntry7 = LogParser.parseLine(log7Valid, Path.of("").toAbsolutePath());
+
 
 	System.out.println(logEntry1.orElse(null));
 	System.out.println(logEntry2.orElse(null));
+	System.out.println(logEntry3.orElse(null));
 	System.out.println(logEntry4.orElse(null));
+	System.out.println(logEntry5.orElse(null));
+	System.out.println(logEntry6.orElse(null));
+	System.out.println(logEntry7.orElse(null));
+//	System.out.println(logEntry4.orElse(null));
 
 }
 
