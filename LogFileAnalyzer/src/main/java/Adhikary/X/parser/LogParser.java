@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class LogParser {
 
-	// The pattern matches or finds in Log's of formats "YYYY-MM-DD HH:MM:SS LEVEL [Source] - Message" UNTESTED
+	// The pattern matches or finds in Log's of formats "YYYY-MM-DD HH:MM:SS LEVEL [Source] - Message" UNTESTED , (Padded white space characters between parts is supported now)
 	private static final Pattern  pattern = Pattern.compile("(\s*([1-9][0-9]{3})-([01][0-9])-([0123][0-9]))\s+(([012][0-9]):([0-6][0-9]):([0-6][0-9]))\s+([A-Za-z]{3,40})\s+(\\[[a-zA-Z0-9]{3,300}\\])\s+-\s+(([a-zA-Z0-9]{1,40}){1}(\s+[a-zA-Z0-9]{1,40})*)");
 
 	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
