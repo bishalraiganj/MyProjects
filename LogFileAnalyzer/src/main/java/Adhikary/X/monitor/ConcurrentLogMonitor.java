@@ -27,13 +27,18 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 //	private final ArrayBlockingQueue<Optional<LogEntry>> tempQueue;
 
 	private final ConcurrentHashMap<LogEntry, Time> tempMap;
-	ProperBlockingTask(ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, Boolean> runningFlags , ConcurrentHashMap<LogEntry,Time> tempMap)
+
+	private final LogConsumer consumer;
+
+
+	ProperBlockingTask(ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, Boolean> runningFlags , ConcurrentHashMap<LogEntry,Time> tempMap,LogConsumer consumer )
 	{
 		this.fileOffsets = fileOffsets;
 		this.path = path;
 		this.sleepTime = sleepTime;
 		this.runningFlags = runningFlags;
 		this.tempMap = tempMap;
+		this.consumer = consumer;
 	}
 
 	@Override
@@ -60,11 +65,14 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 							(lineValue)->{
 
+								Optional<LogEntry> maybeLogEntry = LogParser.parseLine(lineValue,path);
 
-								if(LogParser.parseLine(lineValue,path).isPresent() )
+								if(maybeLogEntry.isPresent())
 								{
-									tempMap.put(LogParser.parseLine(lineValue,path).get(),new Time(System.currentTimeMillis()));
+//									tempMap.put(maybeLogEntry.get(),new Time(System.currentTimeMillis()));
 
+
+									consumer.accept(maybeLogEntry.get());
 									try {
 										fileOffsets.put(path,raf.getFilePointer());
 									} catch (IOException e) {
@@ -105,6 +113,8 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 
 
+
+
 	private static class SleepBlocker implements ForkJoinPool.ManagedBlocker {
 		private final long sleepTime;
 
@@ -140,6 +150,33 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 }
 
 
+@FunctionalInterface
+interface LogConsumer {
+
+
+	void accept(LogEntry logEntry);
+
+
+	default LogConsumer andThen(LogConsumer after)
+	{
+		if(after == null) throw  new RuntimeException("Next Consumer is null !");
+
+		return (entry)->{
+			this.accept(entry);
+			after.accept(entry);
+		};
+
+
+
+
+
+
+	}
+
+
+
+
+}
 
 public class ConcurrentLogMonitor {
 
@@ -152,9 +189,12 @@ public class ConcurrentLogMonitor {
 
 	private final long sleepTime ;
 
-	public ConcurrentLogMonitor(long sleepTime)
+	private final LogConsumer consumer;
+
+	public ConcurrentLogMonitor(long sleepTime,LogConsumer consumer)
 	{
 		this.sleepTime = sleepTime;
+		this.consumer = consumer;
 	}
 
 
@@ -177,7 +217,7 @@ public class ConcurrentLogMonitor {
 		}
 
 
-		executor.invoke(new ProperBlockingTask(fileOffsets,path,sleepTime,runningFlags,tempMap) );
+		executor.invoke(new ProperBlockingTask(fileOffsets,path,sleepTime,runningFlags,tempMap,consumer) );
 
 
 
