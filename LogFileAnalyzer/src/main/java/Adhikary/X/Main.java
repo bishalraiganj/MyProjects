@@ -84,7 +84,7 @@ public class Main {
 			executor.execute(task);
 		}
 
-		ConcurrentLogMonitor monitor1 = new ConcurrentLogMonitor(900L,(logEntry)->{
+		ConcurrentLogMonitor monitor1 = new ConcurrentLogMonitor(25,900L,(logEntry)->{
 			System.out.println(logEntry);
 		});
 

@@ -12,6 +12,8 @@ import java.util.Random;
 public class TemporaryTesting {
 
 
+	// Write now the logic in writeToFile writes every 1100 ms or 1.1 seconds later
+
 	public static void writeToFile(Path path , Duration duration)
 	{
 		long now = System.nanoTime();
@@ -52,7 +54,7 @@ public class TemporaryTesting {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println("Total Written logs to file : " + count + " File name : " + path.getFileName() + " Path : " + path.toAbsolutePath().toString() );
+		System.out.println("Total Written logs to file : " + count + " Ran for : " + ((System.nanoTime() - now) / (1000*1000*1000L )) +" seconds | "+" File name : " + path.getFileName() + " Path : " + path.toAbsolutePath().toString() );
 
 
 	}

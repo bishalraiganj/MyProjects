@@ -20,13 +20,22 @@ import java.util.regex.Matcher;
 
 class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>>
 {
+ //timeLimit is in seconds measure so should be passed seconds units like , 8 for 8 seconds , 9 for 9 seconds
+	private final int timeLimit ; //This defines how long the compute() runs or abstractly saying how long the thread will run
 
 	private final ConcurrentHashMap<Path, Long> fileOffsets;
 
 	private final Path path;
 
+	//sleepTime describes how long a thread will sleep before polling again , except at the very first poll
 	private final Long sleepTime; // No need for atomicLong since we are not concurrently accessing or modifying
-	private final ConcurrentHashMap<Path, AtomicBoolean> runningFlags;
+	// (Since, each thread will have their own instance of ProperBlockingTask
+	// thus own copy/instance of this field
+
+	private final ConcurrentHashMap<Path, AtomicBoolean> runningFlags; // This is a shared resource passed to each instance of properBlockingTask
+	// by the concurrentLogMonitor instance
+	// where this resource truly originates ,
+	// this object is shared for establishing coordination across threads running concurrently
 
 //	private final ArrayBlockingQueue<Optional<LogEntry>> tempQueue;
 
@@ -38,8 +47,9 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 	private final AtomicLong logTotalCount = new AtomicLong(0L);
 
-	ProperBlockingTask(ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, AtomicBoolean> runningFlags ,LogConsumer consumer )
+	ProperBlockingTask(int timeLimit,ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, AtomicBoolean> runningFlags ,LogConsumer consumer )
 	{
+		this.timeLimit = timeLimit;
 		this.fileOffsets = fileOffsets;
 		this.path = path;
 		this.sleepTime = sleepTime;
@@ -63,7 +73,7 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 //					if (!runningFlags.containsKey(path)) {
 //						runningFlags.put(path, new AtomicBoolean(true));
 //					}
-					while (runningFlags.get(path).get() && System.currentTimeMillis() - sTime <= 90 * 1000) {
+					while (runningFlags.get(path).get() && System.currentTimeMillis() - sTime <= timeLimit * 1000L) {
 						if (!fileOffsets.containsKey(path)) {
 							fileOffsets.put(path, raf.length());
 						}
@@ -94,6 +104,7 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 									try {
 										if(maybeLogEntry.isEmpty()) {
 											processedFailedLogsMap.merge(lineValue, LocalDateTime.now(), (ol, n) -> LocalDateTime.now());
+											logTotalCount.incrementAndGet();
 										}
 										fileOffsets.put(path, raf.getFilePointer());
 									} catch (IOException e) {
@@ -111,6 +122,7 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 					}
 
+					System.out.println(Thread.currentThread().getName() + " finished execution !  in " + ( System.currentTimeMillis() - sTime )/1000 + " seconds  | processed : " + logTotalCount.get()  + " Lines " );
 
 				} catch (IOException | InterruptedException e) {
 					throw new RuntimeException(e);
@@ -166,7 +178,12 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 public class ConcurrentLogMonitor {
 
+
+	private final int timeLimit;
+
+
 	private final ConcurrentHashMap<Path,Long> fileOffsets = new ConcurrentHashMap<>();
+
 
 
 	private final ConcurrentHashMap<Path, AtomicBoolean> runningFlags = new ConcurrentHashMap<>();
@@ -179,8 +196,9 @@ public class ConcurrentLogMonitor {
 
 
 
-	public ConcurrentLogMonitor(long sleepTime, LogConsumer consumer)
+	public ConcurrentLogMonitor(int timeLimit, long sleepTime, LogConsumer consumer)
 	{
+		this.timeLimit = timeLimit;
 		this.sleepTime = sleepTime;
 		this.consumer = consumer;
 	}
@@ -208,7 +226,7 @@ public class ConcurrentLogMonitor {
 		}
 
 
-		executor.submit(new ProperBlockingTask(fileOffsets,path,sleepTime,runningFlags,consumer) );
+		executor.submit(new ProperBlockingTask(timeLimit,fileOffsets,path,sleepTime,runningFlags,consumer) );
 
 
 
