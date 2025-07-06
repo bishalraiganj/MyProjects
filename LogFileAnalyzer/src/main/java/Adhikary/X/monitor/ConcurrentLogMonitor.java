@@ -1,5 +1,6 @@
 package Adhikary.X.monitor;
 
+import Adhikary.X.consumer.LogConsumer;
 import Adhikary.X.model.LogEntry;
 import Adhikary.X.parser.LogParser;
 import com.sun.jdi.BooleanValue;
@@ -9,8 +10,11 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 
 
@@ -21,23 +25,26 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 	private final Path path;
 
-	private final Long sleepTime;
-	private final ConcurrentHashMap<Path, Boolean> runningFlags;
+	private final Long sleepTime; // No need for atomicLong since we are not concurrently accessing or modifying
+	private final ConcurrentHashMap<Path, AtomicBoolean> runningFlags;
 
 //	private final ArrayBlockingQueue<Optional<LogEntry>> tempQueue;
 
-	private final ConcurrentHashMap<LogEntry, Time> tempMap;
+//	private final ConcurrentHashMap<LogEntry, Time> tempMap;
 
 	private final LogConsumer consumer;
 
+	private final ConcurrentHashMap<String, LocalDateTime> processedFailedLogsMap = new ConcurrentHashMap<>();
 
-	ProperBlockingTask(ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, Boolean> runningFlags , ConcurrentHashMap<LogEntry,Time> tempMap,LogConsumer consumer )
+	private final AtomicLong logTotalCount = new AtomicLong(0L);
+
+	ProperBlockingTask(ConcurrentHashMap<Path,Long> fileOffsets, Path path ,Long sleepTime, ConcurrentHashMap<Path, AtomicBoolean> runningFlags ,LogConsumer consumer )
 	{
 		this.fileOffsets = fileOffsets;
 		this.path = path;
 		this.sleepTime = sleepTime;
 		this.runningFlags = runningFlags;
-		this.tempMap = tempMap;
+//		this.tempMap = tempMap;
 		this.consumer = consumer;
 	}
 
@@ -46,68 +53,72 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 	{
 
 
-		if(Files.exists(path))
-		{
-			try (RandomAccessFile raf = new RandomAccessFile(path.toString(),"r")) {
+		long sTime = System.currentTimeMillis();
 
 
-				while (runningFlags.get(path))
-				{
-					if(!fileOffsets.containsKey(path))
-					{
-						fileOffsets.put(path,raf.length());
-					}
-					raf.seek(fileOffsets.get(path));
+			if (Files.exists(path)) {
+				try (RandomAccessFile raf = new RandomAccessFile(path.toString(), "r")) {
 
-					Optional<String> line = Optional.ofNullable(raf.readLine());
 
-					line.ifPresentOrElse(
+//					if (!runningFlags.containsKey(path)) {
+//						runningFlags.put(path, new AtomicBoolean(true));
+//					}
+					while (runningFlags.get(path).get() && System.currentTimeMillis() - sTime <= 90 * 1000) {
+						if (!fileOffsets.containsKey(path)) {
+							fileOffsets.put(path, raf.length());
+						}
+						raf.seek(fileOffsets.get(path));
 
-							(lineValue)->{
+						Optional<String> line = Optional.ofNullable(raf.readLine());
 
-								Optional<LogEntry> maybeLogEntry = LogParser.parseLine(lineValue,path);
+						line.ifPresentOrElse(
 
-								if(maybeLogEntry.isPresent())
-								{
+								(lineValue) -> {
+
+									Optional<LogEntry> maybeLogEntry = LogParser.parseLine(lineValue, path);
+
+									if (maybeLogEntry.isPresent()) { // Only on successful parsing returned optional instance will have a logEntry value
 //									tempMap.put(maybeLogEntry.get(),new Time(System.currentTimeMillis()));
 
 
-									consumer.accept(maybeLogEntry.get());
+										logTotalCount.incrementAndGet();
+										consumer.accept(maybeLogEntry.get());
+//									try {
+//										fileOffsets.put(path, raf.getFilePointer());
+//									} catch (IOException e) {
+//										throw new RuntimeException(e);
+//									}
+
+									}
+
 									try {
-										fileOffsets.put(path,raf.getFilePointer());
+										if(maybeLogEntry.isEmpty()) {
+											processedFailedLogsMap.merge(lineValue, LocalDateTime.now(), (ol, n) -> LocalDateTime.now());
+										}
+										fileOffsets.put(path, raf.getFilePointer());
 									} catch (IOException e) {
 										throw new RuntimeException(e);
 									}
 
+
+								}, () -> {
+
 								}
+						);
 
-								try {
-									fileOffsets.put(path, raf.getFilePointer());
-								}catch(IOException e)
-								{
-									throw new RuntimeException(e);
-								}
+						ForkJoinPool.managedBlock(new SleepBlocker(sleepTime));
 
 
-							},()->{
-
-							}
-					);
-
-					ForkJoinPool.managedBlock(new SleepBlocker(sleepTime));
+					}
 
 
-
+				} catch (IOException | InterruptedException e) {
+					throw new RuntimeException(e);
 				}
-
-
-			}catch(IOException | InterruptedException e)
-			{
-				throw new RuntimeException(e);
 			}
-		}
 
-		return tempMap;
+
+		return null;
 
 	}
 
@@ -150,48 +161,25 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 }
 
 
-@FunctionalInterface
-interface LogConsumer {
 
 
-	void accept(LogEntry logEntry);
-
-
-	default LogConsumer andThen(LogConsumer after)
-	{
-		if(after == null) throw  new RuntimeException("Next Consumer is null !");
-
-		return (entry)->{
-			this.accept(entry);
-			after.accept(entry);
-		};
-
-
-
-
-
-
-	}
-
-
-
-
-}
 
 public class ConcurrentLogMonitor {
 
 	private final ConcurrentHashMap<Path,Long> fileOffsets = new ConcurrentHashMap<>();
 
 
-	private final ConcurrentHashMap<Path,Boolean> runningFlags = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Path, AtomicBoolean> runningFlags = new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<LogEntry,Time> tempMap = new ConcurrentHashMap<>();
+//	private final ConcurrentHashMap<LogEntry,Time> tempMap = new ConcurrentHashMap<>();
 
 	private final long sleepTime ;
 
 	private final LogConsumer consumer;
 
-	public ConcurrentLogMonitor(long sleepTime,LogConsumer consumer)
+
+
+	public ConcurrentLogMonitor(long sleepTime, LogConsumer consumer)
 	{
 		this.sleepTime = sleepTime;
 		this.consumer = consumer;
@@ -206,22 +194,39 @@ public class ConcurrentLogMonitor {
 	public void startMonitoring(Path path)
 	{
 
-		if(!Files.exists(path))
+		runningFlags.putIfAbsent(path,new AtomicBoolean(true));
+		if(!Files.exists(path) || !Files.isRegularFile(path))
 		{
-			try {
-				Files.createDirectory(path);
-			}catch(IOException e)
-			{
-				throw new RuntimeException(e);
-			}
+//			try {
+//				Files.createFile(path);
+//			}catch(IOException e)
+//			{
+//				throw new RuntimeException(e);
+//			}
+
+			throw new RuntimeException(" Cannot monitor nonexistent or invalid log file: " + path);
 		}
 
 
-		executor.invoke(new ProperBlockingTask(fileOffsets,path,sleepTime,runningFlags,tempMap,consumer) );
+		executor.submit(new ProperBlockingTask(fileOffsets,path,sleepTime,runningFlags,consumer) );
 
 
 
 
+
+	}
+
+	public void stopMonitoring(Path path)
+	{
+		AtomicBoolean runningFlag = runningFlags.get(path);
+		if(runningFlag == null)
+		{
+			System.out.println("No running flag found for path: " + path);
+		}
+		else {
+
+			runningFlags.get(path).set(false);
+		}
 
 	}
 
