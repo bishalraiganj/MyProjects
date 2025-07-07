@@ -148,7 +148,16 @@ public class Main {
 
 		System.out.println(" \n \n \n path map total log count : " + pathMapTotalSize + " levelMap total log count : " + levelMapTotalSize);
 
-//		TemporaryTesting.writeToFile(Path.of("BishalAppLogs.txt"), Duration.ofSeconds(30));
+		System.out.println("SEVERE List : " );
+		logStore1.getByLevel("severe ").forEach(System.out::println);
+
+		System.out.println("App2log.txt List: ");
+		logStore1.getByFile(Path.of("App2Log.txt")).forEach(System.out::println);
+
+		System.out.println("-".repeat(100));
+		logStore1.getRecent(Duration.ofSeconds(5)).forEach(System.out::println);
+
+		System.out.println("lastUpdate value on logStore1: " + logStore1.getLastUpdated());
 
 }
 

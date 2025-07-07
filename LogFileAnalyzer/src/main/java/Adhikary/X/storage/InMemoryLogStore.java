@@ -83,6 +83,7 @@ public class InMemoryLogStore {
 
 
 		totalCount.getAndIncrement();
+		lastUpdated.set(entry.timestamp());
 	}
 
 	public List<LogEntry> getAll()
@@ -111,7 +112,7 @@ public class InMemoryLogStore {
 
 		List<LogEntry> filteredList = logEntries.parallelStream()
 				.filter((entry)->{
-					return entry.logLevel().equals(level.trim());
+					return entry.logLevel().equalsIgnoreCase(level.trim());
 				})
 				.collect(()->new ArrayList<>(),(ArrayList<LogEntry> list,LogEntry entry)->list.add(entry),(a,b)->{
 					a.addAll(b);
@@ -166,6 +167,8 @@ public class InMemoryLogStore {
 
 		LocalDateTime startTime = endTime.minus(duration);
 
+
+		System.out.println("Start time: " + startTime + " End time: " + endTime);
 		List<LogEntry> filteredList = logEntries.parallelStream()
 				.filter((entry)->{
 					return !entry.timestamp().isBefore(startTime) && entry.timestamp().isBefore(endTime);
@@ -179,6 +182,10 @@ public class InMemoryLogStore {
 
 	}
 
+	public LocalDateTime getLastUpdated()
+	{
+		return lastUpdated.get();
+	}
 
 
 }
