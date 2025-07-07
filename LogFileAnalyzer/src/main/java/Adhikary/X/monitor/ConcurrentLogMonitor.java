@@ -166,7 +166,14 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 		@Override
 		public boolean isReleasable()
 		{
-			return System.currentTimeMillis() - startTime >= sleepTime;
+			return System.currentTimeMillis() - startTime >= sleepTime; // If after invoking forkJoinPool.manageBlocked() in compute elapsed time is greater or equal to sleep time
+			// then no need to invoke the block() here since (logic : since 3 seconds already passed so no need to sleep through block() before polling
+			// isReleasable() is like a condition before invoking block() if isReleasable() returns false that means block() is invoked and forkJoinPool tries to compensate
+			// by spawning (creating ) a new thread
+			// isReleasable() tells the forkJoinPool whether the block() is required or not , if isReleasable() returns true that means ignore invoking block() and compensation  and release
+			// the flow of execution in compute after the blocking logic ( specifically the ForkJoinPool.manageBlocked(manageBlocker instance) )
+			// and if the isReleasable() returns false , then compensation is tried by forkJoinPool and then block() logic is executed if execution completes block() also returns true
+			// indicating forkJoinpool to continue execution in compute after block logic else if block() failed or returned false forkJoinPool keeps trying block() logic execution until true is returned or handled otherwise
 
 		}
 	}

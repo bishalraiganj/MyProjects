@@ -65,7 +65,18 @@ public class Main {
 
 		Optional<LogEntry> logEntry8 = LogParser.parseLine(log8Valid,Path.of("BishalAppLogs.txt"));
 		System.out.println(logEntry8.orElse(null));
+
+
 		System.out.println("-".repeat(50));
+
+
+
+
+
+
+
+
+
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -84,6 +95,8 @@ public class Main {
 			executor.execute(task);
 		}
 
+
+		// First argument timeLimit determines how long each thread can run in seconds , second argument sleepTime is the thread sleep time before each polling from file in Milliseconds
 		ConcurrentLogMonitor monitor1 = new ConcurrentLogMonitor(25,900L,(logEntry)->{
 			System.out.println(logEntry);
 		});
