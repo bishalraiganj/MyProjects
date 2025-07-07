@@ -2,10 +2,10 @@ package Adhikary.X.storage;
 
 import Adhikary.X.model.LogEntry;
 
+
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,7 +19,7 @@ public class InMemoryLogStore {
 	private final ConcurrentHashMap<Path, ConcurrentLinkedQueue<LogEntry>> groupedByPathMap
 			= new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<String,ConcurrentHashMap<Path,ConcurrentLinkedQueue<LogEntry>>>  groupedByLevelMap
+	private final ConcurrentHashMap<String,ConcurrentLinkedQueue<LogEntry>>  groupedByLevelMap
 			= new ConcurrentHashMap<>();
 
 	private final AtomicLong totalCount =
@@ -36,27 +36,52 @@ public class InMemoryLogStore {
 		String level = entry.logLevel();
 		logEntries.offer(entry);
 
-		// In case there is no entry for a path in groupedByPathMap then the following object is used as value
-		ConcurrentLinkedQueue<LogEntry> latestPathQueue = new ConcurrentLinkedQueue<>();
-		latestPathQueue.offer(entry);
-		groupedByPathMap.merge(path,latestPathQueue,(old,latest)->{
 
-			old.offer(entry);
-			return old;
+
+//		groupedByPathMap.computeIfAbsent(path,(p)->{
+//
+//			ConcurrentLinkedQueue<LogEntry> queue =  new ConcurrentLinkedQueue<>();
+//			queue.offer(entry);
+//			return queue;
+//		});
+
+		groupedByPathMap.compute(path,(p,v)->{
+			if (v == null)
+			{
+			ConcurrentLinkedQueue<LogEntry> 	queue = new ConcurrentLinkedQueue<>();
+			queue.offer(entry);
+			return queue;
+			}
+			v.offer(entry);
+			return v;
 		});
 
 
 
+//			groupedByLevelMap.computeIfAbsent(level, (l) -> {
+//
+//				ConcurrentLinkedQueue<LogEntry> queue = new ConcurrentLinkedQueue<>();
+//				queue.offer(entry);
+//				return queue;
+//			});
 
-		//In case there is no entry(key ,value pair ) in groupedByLevelMap then the following object is used as value
-		ConcurrentHashMap<Path,ConcurrentLinkedQueue<LogEntry>> latestLevelMap = new ConcurrentHashMap<>();
-		latestLevelMap.put(path,latestPathQueue);
-		groupedByLevelMap.merge(level,latestLevelMap,(old,latest)->{
 
-			old.get(path).offer(entry);
-			return old;
+			groupedByLevelMap.compute(level, (l, v) -> {
+			if(v == null)
+			{
+				ConcurrentLinkedQueue<LogEntry> queue = new ConcurrentLinkedQueue<>();
+				queue.offer(entry);
+				return queue;
+			}
+				v.offer(entry);
+				return v;
+			});
 
-		});
+
+
+
+
+		totalCount.getAndIncrement();
 	}
 
 	public List<LogEntry> getAll()
@@ -64,6 +89,19 @@ public class InMemoryLogStore {
 		return new ArrayList<>(logEntries);
 	}
 
+	public long totalCount()
+	{
+		return totalCount.get();
+	}
 
+	public HashMap<Path,ConcurrentLinkedQueue<LogEntry>> getPathMap()
+	{
+		return new HashMap<>(groupedByPathMap);
+	}
+
+	public HashMap<String,ConcurrentLinkedQueue<LogEntry>> getLevelMap()
+	{
+		return new HashMap<>(groupedByLevelMap);
+	}
 
 }

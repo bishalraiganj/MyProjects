@@ -1,9 +1,11 @@
 package Adhikary.X;
 
 import Adhikary.X.Testing.TemporaryTesting;
+import Adhikary.X.consumer.LogConsumer;
 import Adhikary.X.model.LogEntry;
 import Adhikary.X.monitor.ConcurrentLogMonitor;
 import Adhikary.X.parser.LogParser;
+import Adhikary.X.storage.InMemoryLogStore;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -80,12 +82,13 @@ public class Main {
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 
+		InMemoryLogStore logStore1 = new InMemoryLogStore();
 
 
 
-		List<Runnable> tasksList = List.of(()->TemporaryTesting.writeToFile(Path.of("BishalAppLogs.txt"),Duration.ofSeconds(25)),()->{
+		List<Runnable> tasksList = List.of(()->TemporaryTesting.writeToFile(Path.of("BishalAppLogs.txt"),Duration.ofSeconds(10)),()->{
 
-			TemporaryTesting.writeToFile(Path.of("App2Log.txt"),Duration.ofSeconds(15));
+			TemporaryTesting.writeToFile(Path.of("App2Log.txt"),Duration.ofSeconds(10));
 
 				}  );
 
@@ -95,17 +98,55 @@ public class Main {
 			executor.execute(task);
 		}
 
+		LogConsumer printToConsoleConsumer  = (entry)->{
+			System.out.println(entry);
+		};
+		LogConsumer addToStoreConsumer = (entry)->{
+			logStore1.add(entry);
+		};
 
 		// First argument timeLimit determines how long each thread can run in seconds , second argument sleepTime is the thread sleep time before each polling from file in Milliseconds
-		ConcurrentLogMonitor monitor1 = new ConcurrentLogMonitor(25,900L,(logEntry)->{
-			System.out.println(logEntry);
-		});
+		ConcurrentLogMonitor monitor1 = new ConcurrentLogMonitor(10,500L,printToConsoleConsumer.andThen(addToStoreConsumer));
+
 
 		 monitor1.startMonitoring(Path.of("BishalAppLogs.txt"));
 		 monitor1.startMonitoring(Path.of("App2Log.txt"));
 		executor.shutdown();
 
 
+		try {
+			Thread.currentThread().sleep(12000);
+		}catch(InterruptedException e)
+		{
+			throw new RuntimeException(e);
+		}
+		System.out.println("-".repeat(100));
+
+		System.out.println("\n".repeat(5));
+
+		System.out.println(" total Count of Entries in InMemoryLogStore : " + logStore1.totalCount());
+
+//		logStore1.getAll().forEach((entry)->{
+//			System.out.println(entry);
+//		});
+
+
+		long pathMapTotalSize = logStore1.getPathMap().entrySet()
+						.stream()
+								.flatMap((e)->{
+								return	e.getValue().stream();
+								})
+										.count();
+
+		long levelMapTotalSize = logStore1.getLevelMap().entrySet()
+						.stream()
+								.flatMap((e)->{
+									return e.getValue().stream();
+								})
+										.count();
+
+
+		System.out.println(" \n \n \n path map total log count : " + pathMapTotalSize + " levelMap total log count : " + levelMapTotalSize);
 
 //		TemporaryTesting.writeToFile(Path.of("BishalAppLogs.txt"), Duration.ofSeconds(30));
 

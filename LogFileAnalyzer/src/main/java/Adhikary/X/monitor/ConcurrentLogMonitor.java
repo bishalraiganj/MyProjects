@@ -122,7 +122,7 @@ class ProperBlockingTask extends RecursiveTask<ConcurrentHashMap<LogEntry, Time>
 
 					}
 
-					System.out.println(Thread.currentThread().getName() + " finished execution !  in " + ( System.currentTimeMillis() - sTime )/1000 + " seconds  | processed : " + logTotalCount.get()  + " Lines " );
+					System.out.println(Thread.currentThread().getName() + " finished execution !  in " + ( System.currentTimeMillis() - sTime )/1000 + " seconds  | Monitored : " + logTotalCount.get()  + " Lines " );
 
 				} catch (IOException | InterruptedException e) {
 					throw new RuntimeException(e);
