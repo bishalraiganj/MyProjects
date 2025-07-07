@@ -4,6 +4,7 @@ import Adhikary.X.model.LogEntry;
 
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -103,5 +104,81 @@ public class InMemoryLogStore {
 	{
 		return new HashMap<>(groupedByLevelMap);
 	}
+
+	public List<LogEntry> getByLevel(String level)
+	{
+
+
+		List<LogEntry> filteredList = logEntries.parallelStream()
+				.filter((entry)->{
+					return entry.logLevel().equals(level.trim());
+				})
+				.collect(()->new ArrayList<>(),(ArrayList<LogEntry> list,LogEntry entry)->list.add(entry),(a,b)->{
+					a.addAll(b);
+				});
+
+		return filteredList;
+
+	}
+
+	public List<LogEntry> getByFile(Path path)
+	{
+		List<LogEntry> filteredList = logEntries.parallelStream()
+				.filter((entry)->{
+					return entry.filePath().equals(path);
+				})
+				.collect(()->new ArrayList<>(),(ArrayList<LogEntry> list,LogEntry entry)->
+						list.add(entry),(a,b)->{
+					a.addAll(b);
+				});
+		return filteredList;
+
+	}
+
+	public List<LogEntry> getRecent(Duration duration)
+	{
+
+//		if(duration.toMillis() <= 30 * 1000)
+//		{
+//			long endTime = System.currentTimeMillis();
+//			long startTime = endTime - duration.toMillis();
+//
+//			List<LogEntry> filteredLogs = logEntries.parallelStream()
+//					.filter((entry)->{
+//						return entry.timestamp().
+//					})
+//
+//
+//
+//
+//
+//		}
+
+
+
+		if(logEntries.isEmpty())
+		{
+			return Collections.emptyList();
+		}
+
+
+		LocalDateTime  endTime = LocalDateTime.now();
+
+		LocalDateTime startTime = endTime.minus(duration);
+
+		List<LogEntry> filteredList = logEntries.parallelStream()
+				.filter((entry)->{
+					return !entry.timestamp().isBefore(startTime) && entry.timestamp().isBefore(endTime);
+				})
+				.collect(()->new ArrayList<>(),(ArrayList<LogEntry> list, LogEntry entry)->list.add(entry),
+						(a,b)->{
+					a.addAll(b);
+						});
+
+		return filteredList;
+
+	}
+
+
 
 }

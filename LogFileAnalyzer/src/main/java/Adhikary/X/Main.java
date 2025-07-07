@@ -131,17 +131,17 @@ public class Main {
 //		});
 
 
-		long pathMapTotalSize = logStore1.getPathMap().entrySet()
-						.stream()
+		long pathMapTotalSize = logStore1.getPathMap().values()
+						.parallelStream()
 								.flatMap((e)->{
-								return	e.getValue().stream();
+								return	e.stream();
 								})
 										.count();
 
-		long levelMapTotalSize = logStore1.getLevelMap().entrySet()
-						.stream()
+		long levelMapTotalSize = logStore1.getLevelMap().values()
+						.parallelStream()
 								.flatMap((e)->{
-									return e.getValue().stream();
+									return e.stream();
 								})
 										.count();
 
