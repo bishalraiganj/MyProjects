@@ -136,7 +136,7 @@ public class Main {
 		 scheduledExecutor.shutdown();
 
 		try {
-			Thread.currentThread().sleep(12000);
+			Thread.currentThread().sleep(2000);
 		}catch(InterruptedException e)
 		{
 			throw new RuntimeException(e);
