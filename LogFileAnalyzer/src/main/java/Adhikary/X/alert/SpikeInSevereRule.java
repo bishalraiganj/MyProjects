@@ -58,6 +58,12 @@ public class SpikeInSevereRule implements AlertRule{
 				"Say 10 severe logs monitored in the last 5 seconds :-) ";
 	}
 
+	@Override
+	public String toString()
+	{
+		return "\n SpikeInSevereRule [threshold="+threshold + "| Window= " + window + "] \n";
+	}
+
 
 
 

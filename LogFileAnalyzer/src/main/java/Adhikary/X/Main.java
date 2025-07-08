@@ -1,6 +1,7 @@
 package Adhikary.X;
 
 import Adhikary.X.Testing.TemporaryTesting;
+import Adhikary.X.alert.*;
 import Adhikary.X.consumer.LogConsumer;
 import Adhikary.X.model.LogEntry;
 import Adhikary.X.monitor.ConcurrentLogMonitor;
@@ -11,9 +12,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class Main {
 
@@ -111,8 +110,30 @@ public class Main {
 
 		 monitor1.startMonitoring(Path.of("BishalAppLogs.txt"));
 		 monitor1.startMonitoring(Path.of("App2Log.txt"));
-		executor.shutdown();
 
+		 ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+		 AlertEngine alertEngine = new AlertEngine(logStore1);
+		 AlertRule spikeInSevereRule = new SpikeInSevereRule(4,Duration.ofSeconds(5));
+		 AlertNotifier consoleAlertNotifier = new ConsoleAlertNotifier();
+		 alertEngine.registerRule(spikeInSevereRule,consoleAlertNotifier);
+
+
+		 Runnable runAlertEngine = ()->{
+			 alertEngine.evaluateAlerts();
+		 };
+
+		 scheduledExecutor.scheduleAtFixedRate(runAlertEngine,3L,1L, TimeUnit.SECONDS);
+
+
+		 executor.shutdown();
+		 try {
+			 executor.awaitTermination(15, TimeUnit.SECONDS);
+		 }catch (InterruptedException e)
+		 {
+			 throw new RuntimeException(e);
+		 }
+
+		 scheduledExecutor.shutdown();
 
 		try {
 			Thread.currentThread().sleep(12000);

@@ -35,6 +35,7 @@ public class AlertEngine {
 				ConcurrentLinkedQueue<AlertNotifier> queue
 						= new ConcurrentLinkedQueue<>();
 				queue.offer(notifier);
+				return queue;
 			}
 			existingValue.offer(notifier);
 			return existingValue;
@@ -88,6 +89,7 @@ public class AlertEngine {
 					});
 
 			boolean status = rule.evaluate(list);
+			System.out.println("Boolean Status: " + status + " List sever size: " + list.size());
 
 			if(status)
 			{
